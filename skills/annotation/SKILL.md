@@ -1,71 +1,85 @@
 ---
 name: annotations
-description: 科研代码注释规范。面向灵巧抓取项目的快速迭代开发，强制执行 Google Docstring + 注释即契约：记录研究动机、物理约束、坐标系约定、数学推导。优先解释"为什么"而非"是什么"。
+description: 代码注释规范。覆盖科研/工程/配置三类场景，强制执行 Google Docstring + 契约式注释。科研场景记录研究动机、数学推导、论文引用；工程场景关注契约、边界条件、错误处理；配置场景标注超参数来源和有效范围。
 ---
 
-# Annotations（科研代码注释规范）
+# Annotations（代码注释规范）
 
-## 定位与原则
+统一的代码注释规范，覆盖所有 coding 场景。
 
-**面向对象**：首席研究员及其团队（而非纯工程师）  
-**核心目标**：让代码成为可复现的研究记录，而非仅仅是可运行的程序
+## 通用原则
 
-### 四大原则
+1. **Google Docstring 风格**：Args / Returns / Raises / Notes
+2. **解释"为什么"而非"是什么"**：注释首先回答设计动机
+3. **契约式**：明确前置条件、后置条件、不变量
 
-1. **研究动机优先**
-   - 注释首先回答：为什么这样设计？解决什么科研问题？
-   - 其次才是：怎么实现的？
-   - 示例：❌ "计算四元数乘法" → ✅ "将抓取姿态从物体坐标系转换到世界坐标系，用于与 baseline 方法对齐"
+## 场景选择
 
-2. **物理约束显式化**（灵巧抓取特定）
-   - **坐标系**：world/object/robot/camera，必须明确声明
-   - **四元数约定**：wxyz/xyzw，必须标注
-   - **单位**：米/毫米、弧度/度、牛顿/克力
-   - **物理限制**：关节角度范围、接触力阈值、稳定性条件
+根据代码性质选择对应的注释规范：
 
-3. **数学推导可追溯**
-   - 复杂算法必须在 Notes 中提供：参考论文/公式编号、伪代码或 LaTeX 公式、与论文符号的映射关系
+| 场景 | 核心关注 | 典型代码 | 详细指南 |
+|------|----------|----------|----------|
+| **科研代码** | 数学推导、论文引用、实验动机 | 算法实现、模型定义、损失函数 | [type/research.md](type/research.md) |
+| **工程代码** | 契约、边界条件、错误处理 | 工具函数、数据加载、基础设施 | [type/engineering.md](type/engineering.md) |
+| **配置** | 超参数来源、消融依据、有效范围 | 配置类、YAML 解析 | [type/config.md](type/config.md) |
 
-4. **契约式注释**（继承 Google Docstring）
-   - 前置条件：输入张量形状、归一化状态、必需键
-   - 后置条件：输出保证、不变量维持
-   - 失败模式：何时抛异常、何时返回 NaN
+## 快速示例
 
-## 必须记录的内容
+### 科研代码
 
-### 函数/方法
-- 研究动机（解决什么问题）
-- Args/Returns/Raises（Google 风格）
-- Notes（数学推导、论文引用、与论文差异）
+```python
+def compute_rotation_error(q_pred: torch.Tensor, q_tgt: torch.Tensor) -> torch.Tensor:
+    """计算预测与目标四元数之间的旋转角度误差。
 
-### 类/组件
-- 研究目标
-- Attributes（状态、单位、生命周期）
-- 公共方法的副作用和不变量
+    Args:
+        q_pred: 预测四元数。Shape: (N, 4)。Convention: wxyz。Must be normalized。
+        q_tgt: 目标四元数。Shape: (N, 4)。Convention: wxyz。Must be normalized。
 
-### 配置/超参数
-- 默认值理由（消融实验结果）
-- 单位、有效范围
-- 跨字段约束
+    Returns:
+        旋转角度误差（弧度）。Shape: (N,)。Range: [0, π]。
 
-### 实现注释
-- 设计决策（为什么这样做）
-- 性能优化（缓存、预计算）
-- 临时 workaround（TODO 标记）
+    Notes:
+        数学推导：
+            设 q_Δ = q_tgt⁻¹ ⊗ q_pred，则角度 θ = 2·arccos(|q_Δ,w|)
+            
+        参考：
+            - Quaternion distance metrics, [Huynh 2009] Eq. (5)
+    """
+```
+
+### 工程代码
+
+```python
+def load_point_cloud(path: str, num_points: int = 1024) -> np.ndarray:
+    """从文件加载并采样点云。
+
+    Args:
+        path: 点云文件路径。Must exist。Supported: .ply, .pcd, .npy。
+        num_points: 采样点数。Must be > 0。Default: 1024。
+
+    Returns:
+        采样后的点云。Shape: (num_points, 3)。单位: 米。
+
+    Raises:
+        FileNotFoundError: 文件不存在。
+        ValueError: 不支持的文件格式或 num_points <= 0。
+
+    Contracts:
+        - Pre: path 指向有效的点云文件
+        - Post: 返回的点云恰好有 num_points 个点
+    """
+```
 
 ## Review 检查清单
 
-- [ ] 每个公共函数有完整 docstring（Args/Returns/Notes）
-- [ ] 坐标系/单位/四元数约定已明确标注
-- [ ] 复杂算法有论文引用或数学推导
+- [ ] 每个公共函数有完整 docstring（Args / Returns）
+- [ ] 复杂算法有 Notes 说明（数学推导或论文引用）
 - [ ] 魔法数字有注释解释来源
 - [ ] 临时 hack 有 TODO 标记
-- [ ] 与论文符号的映射关系已说明
+- [ ] 单位和坐标系约定已明确（科研代码）
+- [ ] 错误处理路径已覆盖（工程代码）
 
-## 反模式
+## 示例与模板
 
-❌ **仅重述代码**：应该解释为什么  
-❌ **缺少物理单位**：应标注单位和坐标系  
-❌ **隐含坐标系**：应说明从哪个 frame 到哪个 frame  
-❌ **数学公式无出处**：应引用论文公式编号  
-❌ **过时注释**：重构后忘记更新 docstring
+- [resources/examples.md](resources/examples.md)：综合示例
+- [resources/templates.md](resources/templates.md)：可复用模板
