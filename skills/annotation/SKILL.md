@@ -1,6 +1,6 @@
 ---
 name: annotations
-description: 代码与配置文件的注释规范。面向科研人员（非专业软件工程师），确保代码、脚本、配置文件可理解和可维护。覆盖：(1) Python 代码（函数/类/行内注释）；(2) Bash/Shell 脚本；(3) Docker/Dockerfile；(4) ROS2 launch/config；(5) YAML/TOML/JSON 配置。核心原则：解释"为什么"而非"是什么"，标注科研相关约定（单位、坐标系、论文来源）。
+description: 代码和配置文件的注释规范。用于编写或审查代码时添加注释，确保科研人员（非专业软工）能理解代码逻辑和设计决策。
 ---
 
 # Annotations（注释规范）
