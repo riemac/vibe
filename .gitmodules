@@ -1,0 +1,3 @@
+[submodule "skills/idea-plan"]
+	path = skills/idea-plan
+	url = https://github.com/riemac/idea-plan.git
