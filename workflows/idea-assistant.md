@@ -11,7 +11,7 @@ graph LR
     A((**用户input**<br>提示词, 附件)) --> B[**调研**<br>- 本地代码库查看 local-codebase-research skill <br> - 外部资料和论文委派 research subagent]
     B --> C[**需求明确**<br>查看 idea-clarify skill]
     C --> D[**规划**<br>查看 idea-plan skill]
-    D --> E[**实施**<br>主 agent coding]
+    D --> E[**实施**<br>主 agent coding <br>查看 annotation skill]
     E --> F[**审核**（option）<br>委派 review subagent]
 ```
 
@@ -57,4 +57,4 @@ graph LR
 
 ## 规划文件
 
-`.plan` 文件体系是跨对话窗口的关键，可持续更新和参考的文档。创建、更新和重构时应参照 `idea-plan skill`。
+`.plan` 文件体系是跨对话窗口的关键，可持续更新和参考的文档。创建、读取、更新和重构时应参照 `idea-plan skill`。

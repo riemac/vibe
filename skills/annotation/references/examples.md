@@ -1,168 +1,194 @@
-# Annotation Examples
+# 注释示例集
 
-综合示例，展示各场景的注释规范实践。
+综合示例，覆盖各场景。
 
-## Example 1: 科研代码 - 扩散模型去噪
+## Python 示例
 
-```python
-class DiffusionDenoiser(nn.Module):
-    """扩散模型去噪网络。
-
-    基于 DDPM 框架，预测噪声 ε_θ(x_t, t, c)。
-
-    Attributes:
-        hidden_dim: 隐藏层维度。
-        num_layers: Transformer 层数。
-        time_embed_dim: 时间步嵌入维度。
-
-    Notes:
-        符号映射（对应 [Ho 2020] DDPM）：
-            - self.time_mlp → γ(t)，时间嵌入
-            - self.net → ε_θ，噪声预测网络
-            - forward 输出 → ε_θ(x_t, t, c)
-    """
-
-    def forward(
-        self,
-        x_t: torch.Tensor,      # Shape: (B, C, H, W). 当前噪声样本
-        t: torch.Tensor,        # Shape: (B,). 时间步。Range: [0, T-1]
-        cond: torch.Tensor      # Shape: (B, D). 条件向量
-    ) -> torch.Tensor:
-        """预测噪声。
-
-        Args:
-            x_t: 时间步 t 的噪声样本。Shape: (B, C, H, W)。已归一化到 [-1, 1]。
-            t: 离散时间步。Shape: (B,)。Range: [0, T-1]。
-            cond: 条件信息（如抓取姿态编码）。Shape: (B, D)。
-
-        Returns:
-            预测的噪声 ε_θ。Shape: (B, C, H, W)。
-
-        Notes:
-            数学推导：
-                x_t = √(ᾱ_t)·x_0 + √(1-ᾱ_t)·ε
-                网络学习预测 ε，训练损失 L = ||ε - ε_θ||²
-
-            参考：
-                - [Ho 2020] Denoising Diffusion Probabilistic Models, Eq. (11)
-        """
-        t_emb = self.time_mlp(t)  # (B, time_embed_dim)
-        return self.net(x_t, t_emb, cond)
-```
-
-## Example 2: 工程代码 - 点云采样
+### 科研代码：扩散模型
 
 ```python
-def farthest_point_sampling(
-    points: np.ndarray,
-    num_samples: int
-) -> tuple[np.ndarray, np.ndarray]:
-    """最远点采样（FPS）。
+def denoise_step(
+    x_t: torch.Tensor,
+    t: torch.Tensor,
+    model: nn.Module,
+    noise_schedule: NoiseSchedule,
+) -> torch.Tensor:
+    """DDPM 单步去噪。
 
     Args:
-        points: 输入点云。Shape: (N, 3)。Unit: meters。
-        num_samples: 采样点数。Must be in [1, N]。
+        x_t: 当前噪声样本。Shape: (B, C, H, W)。
+        t: 时间步。Shape: (B,)。Range: [0, T-1]。
+        model: 噪声预测网络 ε_θ。
+        noise_schedule: 噪声调度器，包含 α_t, ᾱ_t 等。
 
     Returns:
-        sampled_points: 采样后的点云。Shape: (num_samples, 3)。
-        indices: 采样点的原始索引。Shape: (num_samples,)。
+        去噪后的样本 x_{t-1}。Shape: (B, C, H, W)。
+
+    Notes:
+        数学推导（DDPM Eq. 11）：
+            μ_θ(x_t, t) = (1/√α_t) · (x_t - β_t/√(1-ᾱ_t) · ε_θ(x_t, t))
+            x_{t-1} = μ_θ + σ_t · z, 其中 z ~ N(0, I)
+
+        符号映射：
+            - x_t  → x_t（公式中的噪声样本）
+            - model(x_t, t) → ε_θ(x_t, t)（预测噪声）
+            
+        参考：
+            - [Ho et al. 2020] DDPM, Algorithm 2
+    """
+    # 预测噪声
+    eps_pred = model(x_t, t)
+    
+    # 计算均值（Eq. 11）
+    alpha_t = noise_schedule.alpha[t]
+    alpha_bar_t = noise_schedule.alpha_bar[t]
+    beta_t = noise_schedule.beta[t]
+    
+    # 注意：这里用 rsqrt 而非 1/sqrt，数值更稳定
+    mean = torch.rsqrt(alpha_t) * (x_t - beta_t / torch.sqrt(1 - alpha_bar_t) * eps_pred)
+    
+    # 添加噪声（t=0 时不加）
+    if t.min() > 0:
+        sigma_t = torch.sqrt(beta_t)
+        noise = torch.randn_like(x_t)
+        return mean + sigma_t * noise
+    else:
+        return mean
+```
+
+### 工程代码：点云采样
+
+```python
+def farthest_point_sample(points: np.ndarray, n_samples: int) -> np.ndarray:
+    """最远点采样，保持点云几何覆盖。
+
+    Args:
+        points: 输入点云。Shape: (N, 3)。
+        n_samples: 采样点数。Must be in [1, N]。
+
+    Returns:
+        采样索引。Shape: (n_samples,)。
 
     Raises:
-        ValueError: num_samples > N 或 num_samples < 1。
+        ValueError: n_samples > N 或 < 1。
 
     Contracts:
-        - Pre: points.shape[0] >= num_samples
-        - Post: sampled_points 中的点两两最远点距离最大化
+        - Pre: points.shape[0] >= n_samples
+        - Post: 返回索引唯一
 
     Notes:
-        复杂度：
-            - 时间：O(N × num_samples)
-            - 空间：O(N)
-
-        边界情况：
-            - num_samples == N: 返回原始点云（顺序可能不同）
-            - 重复点：可能导致距离为 0，但不影响正确性
-
-        参考：
-            - [Qi 2017] PointNet++, Sec. 3.2
+        时间: O(n_samples × N)
+        边界：n_samples == N 时返回 range(N)
     """
 ```
 
-## Example 3: 配置类 - 训练超参数
+## Bash 示例
 
-```python
-@dataclass
-class GraspDiffusionConfig:
-    """抓取扩散模型训练配置。
+```bash
+#!/bin/bash
+# train.sh: DRO-Grasp 训练脚本
+#
+# 功能: 配置环境 + 启动训练
+# 依赖: conda env_dro, nvidia-driver
+# 用法: ./train.sh [config] [--resume]
 
-    Attributes:
-        # === 模型架构 ===
-        hidden_dim: Transformer 隐藏维度。Default: 256。
-            来源：消融实验 Table 3。128→256 精度 +2.1%。
+set -euo pipefail
 
-        num_layers: Transformer 层数。Default: 6。Range: [4, 12]。
-            来源：[Vaswani 2017] 建议。过深会过拟合小数据集。
+# ==============================================================================
+# 配置
+# ==============================================================================
 
-        # === 扩散过程 ===
-        num_timesteps: 扩散步数 T。Default: 1000。
-            来源：[Ho 2020] DDPM 标准设置。
+CONFIG=${1:-default}
+BATCH_SIZE=32   # 消融最优，Table 2
+LR=1e-4
 
-        beta_schedule: 噪声调度类型。Default: "cosine"。
-            Options: "linear", "cosine", "sqrt"。
-            来源：[Nichol 2021] 推荐 cosine。
+# ==============================================================================
+# 环境检查
+# ==============================================================================
 
-        # === 训练 ===
-        lr: 学习率。Default: 1e-4。Range: [1e-5, 1e-3]。
-            来源：消融实验。与 batch_size=64 配合最优。
+# CUDA 检查
+if ! nvidia-smi &> /dev/null; then
+    echo "Error: CUDA not available" >&2
+    exit 1
+fi
 
-        batch_size: 批大小。Default: 64。
-            约束：受 GPU 显存限制（24GB → max 64）。
+# ==============================================================================
+# 启动训练
+# ==============================================================================
 
-    Notes:
-        跨字段约束：
-            - 如增大 batch_size，应相应降低 lr
-            - num_timesteps 增大时，训练时间线性增长
-
-        推荐配置：
-            - 快速实验：hidden_dim=128, num_layers=4, num_timesteps=100
-            - 生产训练：使用默认值
-    """
-    hidden_dim: int = 256
-    num_layers: int = 6
-    num_timesteps: int = 1000
-    beta_schedule: str = "cosine"
-    lr: float = 1e-4
-    batch_size: int = 64
+# -u: 禁用缓冲，日志实时可见
+python -u train.py --config "configs/${CONFIG}.yaml"
 ```
 
-## Example 4: 实现注释
+## Dockerfile 示例
+
+```dockerfile
+# DRO-Grasp 训练镜像
+# 
+# 基础镜像: nvidia/cuda:12.1
+# 构建: docker build -t dro-grasp:train .
+
+FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+# 选 runtime：推理不需编译器，镜像更小
+
+ENV PYTHONUNBUFFERED=1
+
+# 依赖分层
+COPY requirements.txt /app/
+WORKDIR /app
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . /app
+CMD ["python", "train.py"]
+```
+
+## ROS2 示例
 
 ```python
-def compute_grasp_reward(
-    contact_points: torch.Tensor,
-    object_pose: torch.Tensor
-) -> torch.Tensor:
-    # === Step 1: 接触点有效性检查 ===
-    # 为什么检查接触数：少于 3 个接触点无法形成稳定抓取
-    valid_mask = (contact_points > 0).sum(dim=-1) >= 3
+#!/usr/bin/env python3
+"""grasp_pipeline.launch.py - 抓取流水线
 
-    # === Step 2: 计算力闭合分数 ===
-    # 参考 [Ferrari 1992] 力闭合理论
-    # 简化实现：仅检查接触法向是否覆盖空间
-    force_closure = compute_force_closure(contact_points)  # (B,)
+功能: 启动相机 + 抓取规划
+依赖: realsense2_camera, dro_grasp
+"""
 
-    # === Step 3: 姿态对齐奖励 ===
-    # 物体坐标系 → 世界坐标系的变换
-    # Convention: object_pose 使用 wxyz 四元数
-    alignment = compute_alignment(object_pose)  # (B,)
+from launch import LaunchDescription
+from launch.actions import TimerAction
+from launch_ros.actions import Node
 
-    # 奖励聚合
-    # 权重来源：消融实验 Fig. 5
-    reward = 0.6 * force_closure + 0.4 * alignment
+def generate_launch_description():
+    camera = Node(
+        package='realsense2_camera',
+        executable='realsense2_camera_node',
+        parameters=[{'enable_pointcloud': True}],
+    )
+    
+    # 延迟 3s：等相机初始化
+    planner = TimerAction(
+        period=3.0,
+        actions=[Node(
+            package='dro_grasp',
+            executable='grasp_planner',
+            parameters=[{'confidence_threshold': 0.7}],
+        )],
+    )
+    
+    return LaunchDescription([camera, planner])
+```
 
-    # WARN: 无效抓取给予负奖励而非零奖励
-    # 原因：零奖励无法区分"无效"和"刚好零分"
-    reward = torch.where(valid_mask, reward, torch.full_like(reward, -1.0))
+## YAML 示例
 
-    return reward
+```yaml
+# train.yaml - DRO-Grasp 配置
+# 修改前检查显存限制
+
+model:
+  hidden_dim: 256   # 消融最优，Fig.4
+  num_layers: 4
+
+train:
+  batch_size: 32    # 24GB GPU。12GB → 16
+  lr: 1e-4
+  # 跨字段约束: batch × accum = effective
+  gradient_accumulation: 2
 ```

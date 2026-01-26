@@ -1,97 +1,35 @@
-# Annotation Templates
+# 注释模板
 
-可复用的注释模板，按场景分类。
+可复用的注释模板。
 
-## 通用函数模板
+## Python
 
-```python
-def function_name(arg1: Type1, arg2: Type2 = default) -> ReturnType:
-    """<一句话描述：动词开头>
-
-    Args:
-        arg1: <含义>。<约束：Shape/Range/Unit/Convention>。
-        arg2: <含义>。Default: <值>。<约束>。
-
-    Returns:
-        <含义>。<约束：Shape/Range/Unit/Convention>。
-
-    Raises:
-        <ErrorType>: <触发条件>。
-    """
-```
-
-## 科研代码模板
-
-### 算法函数
+### 科研函数
 
 ```python
 def algorithm_function(input: Tensor, param: float) -> Tensor:
     """<一句话描述>
 
     Args:
-        input: <含义>。Shape: (B, N, D)。Convention: <...>。
+        input: <含义>。Shape: <...>。Convention/Unit: <...>。
         param: <含义>。Range: <...>。
 
     Returns:
-        <含义>。Shape: (B, M)。Unit: <...>。
+        <含义>。Shape: <...>。
 
     Notes:
-        研究动机：
-            <为什么需要这个函数>
-
-        数学推导：
-            <公式，使用 LaTeX 或 Unicode>
-
+        研究动机：<为什么需要>
+        
+        数学推导：<公式>
+        
         符号映射：
             - input → <论文符号>
-            - output → <论文符号>
-
-        参考：
-            - [Author YYYY] Title, Eq. (X) / Sec. Y
-
-        与论文差异（如有）：
-            - <差异说明>
+            
+        参考：[Author YYYY] Title, Eq. (X)
     """
 ```
 
-### 神经网络模块
-
-```python
-class ModuleName(nn.Module):
-    """<模块功能描述>
-
-    <模块在整体架构中的角色>
-
-    Attributes:
-        attr1: <含义>。
-        attr2: <含义>。
-
-    Notes:
-        架构参考：
-            - [Author YYYY] Fig. X / Sec. Y
-
-        符号映射：
-            - self.xxx → <论文符号>
-
-        输入输出约定：
-            - 输入：<Shape, Convention>
-            - 输出：<Shape, Convention>
-    """
-
-    def forward(self, x: Tensor) -> Tensor:
-        """前向传播。
-
-        Args:
-            x: <含义>。Shape: <...>。
-
-        Returns:
-            <含义>。Shape: <...>。
-        """
-```
-
-## 工程代码模板
-
-### 工具函数
+### 工程函数
 
 ```python
 def utility_function(input: T, option: bool = False) -> R:
@@ -112,90 +50,130 @@ def utility_function(input: T, option: bool = False) -> R:
         - Post: <后置条件>
 
     Notes:
-        边界情况：
-            - <特殊输入>: <处理方式>
-
-        性能：
-            - 时间: O(...)
-            - 空间: O(...)
+        边界：<...>
     """
 ```
 
-### 类
+### 行内注释
 
 ```python
-class ClassName:
-    """<类的职责>
+# === Section: <区块名> ===
 
-    <在系统中的角色>
-
-    Attributes:
-        attr1: <含义>。<生命周期>。
-        attr2: <含义>。<约束>。
-
-    Invariants:
-        - <不变量1>
-        - <不变量2>
-
-    Thread Safety:
-        <线程安全说明>（如适用）
-    """
-```
-
-## 配置模板
-
-### Dataclass
-
-```python
-@dataclass
-class ComponentConfig:
-    """<组件名>配置。
-
-    Attributes:
-        param1: <含义>。
-            Default: <值>。Range: <...>。
-            来源: <消融实验/论文/经验>。
-
-        param2: <含义>。
-            Default: <值>。Typical: <...>。
-
-    Notes:
-        跨字段约束：
-            - <约束描述>
-
-        推荐配置：
-            - 场景A: <配置>
-            - 场景B: <配置>
-    """
-    param1: float = 1.0
-    param2: int = 100
-```
-
-### YAML 注释
-
-```yaml
-# === Section Name ===
-
-param1: value1  # <含义>。Range: [min, max]。来源: <...>
-param2: value2  # <含义>。Options: [opt1, opt2]。Default 理由: <...>
-
-# 跨字段约束：param1 和 param2 需满足 <条件>
-```
-
-## 实现注释模板
-
-```python
-# === Section: <功能区块名> ===
+value = 42  # <含义>。来源: <论文/实验>。
 
 # 为什么 <决策>: <原因>
-code_line
+tricky_code
 
-# TODO(<author>): <待完成事项>
-# Issue: <链接>（如有）
+# TODO(<author>): <待完成>
+# HACK: <临时方案>，待 <条件> 后移除
+```
 
-# PERF: <性能相关说明>
+## Bash
 
-# WARN: <使用注意事项>
+### 脚本头
 
-# HACK: <临时方案说明>，待 <条件> 后移除
+```bash
+#!/bin/bash
+# <script_name>: <功能>
+#
+# 功能: <详细说明>
+# 依赖: <环境要求>
+# 用法: <调用方式>
+# 示例: <具体示例>
+
+set -euo pipefail
+```
+
+### 区块
+
+```bash
+# ==============================================================================
+# <区块名>
+# ==============================================================================
+
+VAR=value  # <说明>
+```
+
+## Dockerfile
+
+### 文件头
+
+```dockerfile
+# <镜像名> - <功能>
+# 
+# 基础镜像: <选择理由>
+# 构建: docker build -t <tag> .
+# 运行: docker run <options> <tag>
+
+FROM <base-image>
+# 选择理由: <...>
+```
+
+### 指令注释
+
+```dockerfile
+# === 环境配置 ===
+ENV VAR=value  # <说明>
+
+# === 依赖安装 ===
+# 分层：利用缓存
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# === 代码复制 ===
+COPY . /app
+```
+
+## ROS2
+
+### Launch 文件
+
+```python
+#!/usr/bin/env python3
+"""<文件名> - <功能>
+
+功能: <说明>
+依赖: <包名>
+用法: ros2 launch <pkg> <file> [args]
+"""
+
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    # === 参数 ===
+    
+    # === 节点 ===
+    node = Node(
+        package='pkg',
+        executable='exec',
+        parameters=[{'key': 'value'}],  # <说明>
+    )
+    
+    return LaunchDescription([node])
+```
+
+### 配置文件
+
+```yaml
+# <文件名> - <功能>
+# 
+# 适用节点: <node_name>
+
+/node_name:
+  ros__parameters:
+    # === Section ===
+    param: value  # <含义>。来源: <...>。
+```
+
+## YAML 配置
+
+```yaml
+# <配置名> - <功能>
+# 修改说明: <注意事项>
+
+# === Section ===
+param: value    # <含义>。Range: <...>。来源: <...>。
+
+# 跨字段约束: <描述>
 ```
