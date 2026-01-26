@@ -19,9 +19,9 @@ description: 代码注释规范。覆盖科研/工程/配置三类场景，强�
 
 | 场景 | 核心关注 | 典型代码 | 详细指南 |
 |------|----------|----------|----------|
-| **科研代码** | 数学推导、论文引用、实验动机 | 算法实现、模型定义、损失函数 | [type/research.md](type/research.md) |
-| **工程代码** | 契约、边界条件、错误处理 | 工具函数、数据加载、基础设施 | [type/engineering.md](type/engineering.md) |
-| **配置** | 超参数来源、消融依据、有效范围 | 配置类、YAML 解析 | [type/config.md](type/config.md) |
+| **科研代码** | 数学推导、论文引用、实验动机 | 算法实现、模型定义、损失函数 | [references/research.md](references/research.md) |
+| **工程代码** | 契约、边界条件、错误处理 | 工具函数、数据加载、基础设施 | [references/engineering.md](references/engineering.md) |
+| **配置** | 超参数来源、消融依据、有效范围 | 配置类、YAML 解析 | [references/config.md](references/config.md) |
 
 ## 快速示例
 
@@ -81,5 +81,5 @@ def load_point_cloud(path: str, num_points: int = 1024) -> np.ndarray:
 
 ## 示例与模板
 
-- [resources/examples.md](resources/examples.md)：综合示例
-- [resources/templates.md](resources/templates.md)：可复用模板
+- [references/examples.md](references/examples.md)：综合示例
+- [references/templates.md](references/templates.md)：可复用模板
