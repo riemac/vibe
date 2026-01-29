@@ -48,6 +48,9 @@ graph LR
 - **Workflow 特殊性**：Workflow 可被 subagent 调用（执行预设流程），但 workflow 间不能互调用
 - **AGENTS.md**：纯入口文件，做路由索引
 
+**说明**：
+- vibe 架构本身与具体项目任务无关，但 agent 需要了解这些组件的存在，以便在合适的时机灵活调用 workflow/skill/subagent/mcp 来完成任务
+
 ---
 
 ## 关联项目简介
@@ -60,7 +63,8 @@ graph LR
 ## 核心原则
 
 1) **遵循固有workflow**
-   - 根据用户提问进入到不同类型的预设workflow执行工作
+   - 根据用户提问类型，判断并进入相应的预设 workflow
+   - 执行前先读取对应 workflow 文档，理解其流程和策略
 
 2) **节省主窗口上下文**
    - 必要时根据场景委派 subagent 独立处理复杂信息，返回精炼结构化结果
