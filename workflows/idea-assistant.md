@@ -11,7 +11,7 @@ graph LR
     A((**用户input**<br>提示词, 附件)) --> B[**调研**<br>- 本地代码库查看 local-codebase-research skill <br> - 外部资料和论文委派 research subagent]
     B --> C[**需求明确**<br>查看 idea-clarify skill]
     C --> D[**规划**<br>查看 idea-plan skill]
-    D --> E[**实施**<br>主 agent coding <br>查看 annotation skill]
+    D --> E[**实施**<br> - 主 agent，查看 annotations skill <br> - 委派Coding subagent]
     E --> F[**审核**（option）<br>委派 review subagent]
 ```
 
@@ -24,8 +24,19 @@ graph LR
 | **调研** | 主 agent + research subagent | 本地代码库分析 + 外部文献调研 |
 | **需求明确** | 主 agent | 参照 `idea-clarify skill`，收敛需求边界 |
 | **规划** | 主 agent | 参照 `idea-plan skill`，创建/更新 `.plan` 文件体系 |
-| **实施** | 主 agent | 端到端 coding，少反馈 |
+| **实施** | 主 agent 或 Coding subagent（用户指定） | 端到端 coding，少反馈 |
 | **审核** | review subagent | 可选，风险与规范审查 |
+
+### 实施阶段执行者选择
+
+进入实施阶段前，询问用户偏好：
+
+| 选项 | 适用场景 | 说明 |
+|------|---------|------|
+| **主 agent** | 简单任务、需要频繁交互、上下文已充足 | 直接在当前对话窗口编码 |
+| **Coding subagent** | 复杂任务、边界明确、希望节省主窗口上下文 | 委派子 agent 独立完成，返回结构化结果 |
+
+默认行为：**询问用户**，不自动假设。
 
 ---
 

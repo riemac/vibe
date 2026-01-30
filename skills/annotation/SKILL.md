@@ -10,7 +10,7 @@ description: 代码和配置文件的注释规范。用于编写或审查代码�
 ## 核心原则
 
 1. **解释"为什么"**：设计动机 > 代码描述
-2. **标注科研约定**：单位、坐标系、论文引用
+2. **标注科研约定**：单位、坐标系、算法公式、论文引用
 3. **面向科研人员**：不假设读者有深厚工程背景
 
 ## 详细指南
@@ -25,8 +25,8 @@ description: 代码和配置文件的注释规范。用于编写或审查代码�
 | ROS2 launch/config | [references/ros2.md](references/ros2.md) |
 | YAML/TOML/JSON | [references/config.md](references/config.md) |
 
-更多示例：[references/examples.md](references/examples.md)  
-可复用模板：[references/templates.md](references/templates.md)
+综合示例：[references/examples.md](references/examples.md)  
+类型模板：[references/templates.md](references/templates.md)
 
 ## 行内注释
 
