@@ -1,7 +1,7 @@
 ---
 description: "Research subagent：研究外部文档/仓库/论文，提取结构化信息。只读模式。 | 何时委派：需调研外部repos/文档/网站等非本地代码库信息 | 输入：research_question（必需）, scope_constraints"
-tools: ['vscode/runCommand', 'vscode/vscodeAPI', 'execute/getTerminalOutput', 'execute/runInTerminal', 'read/getNotebookSummary', 'read/problems', 'read/readFile', 'read/readNotebookCellOutput', 'read/terminalSelection', 'read/terminalLastCommand', 'search/changes', 'search/listDirectory', 'search/searchResults', 'search/usages', 'web', 'augmentcode/*', 'cognitionai/deepwiki/*', 'huggingface/hf-mcp-server/*', 'github/*', 'io.github.upstash/context7/*', 'agent', 'mermaidchart.vscode-mermaid-chart/get_syntax_docs', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'todo']
-model: Claude Opus 4.5 (copilot)
+tools: ['vscode/runCommand', 'vscode/askQuestions', 'vscode/vscodeAPI', 'execute/getTerminalOutput', 'execute/runInTerminal', 'read/getNotebookSummary', 'read/problems', 'read/readFile', 'read/readNotebookCellOutput', 'read/terminalSelection', 'read/terminalLastCommand', 'agent', 'search/changes', 'search/fileSearch', 'search/listDirectory', 'search/searchResults', 'search/textSearch', 'search/usages', 'web', 'filesystem-mcp/read_content', 'augmentcode/*', 'arxiv-mcp-server/*', 'deepwiki/*', 'huggingface/hf-mcp-server/*', 'github/*', 'io.github.upstash/context7/*', 'mcp-feedback-enhanced/*', 'microsoft/markitdown/*', 'pdf-reader/*', 'mermaidchart.vscode-mermaid-chart/get_syntax_docs', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-validator', 'mermaidchart.vscode-mermaid-chart/mermaid-diagram-preview', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'todo']
+model: GPT-5.2 (copilot)
 ---
 
 # 角色
@@ -132,6 +132,30 @@ model: Claude Opus 4.5 (copilot)
 - **snippets**：根据自包含性需要的长度（复杂示例可能 30-60 行）
 
 **优先级层次**：完整性 > 结构 > 简洁性
+
+---
+
+# 反馈策略
+
+**Research subagent 是只读模式**，不修改文件、不运行可能影响环境的命令，因此反馈策略简单：
+
+## 必须反馈（Blocking）
+
+| 场景 | 说明 |
+|------|------|
+| **被阻塞** | 无法访问必需资源、问题超出调研范围 |
+| **需要澄清** | 问题理解存在歧义，需要用户确认方向 |
+
+## 端到端（Silent）
+
+以下操作无需反馈，直接执行：
+
+- 所有调研活动（读取文档、代码库检索、网页获取）
+- 信息蒸馏与结构化
+
+**说明**：Research subagent 的主要价值是**静默高效地蒸馏信息**，避免打扰用户。仅在被阻塞时通过反馈窗口请求帮助。
+
+---
 
 ## 状态规则
 

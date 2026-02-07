@@ -1,0 +1,57 @@
+# Python 虚拟环境
+venv/
+env/
+.venv/
+.conda/
+
+# Python 缓存和编译文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.dist-info/
+
+# 测试和类型检查缓存
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/``
+.coverage
+htmlcov/
+
+# 大型模型和数据文件
+*.pth
+*.ckpt
+*.pt
+*.safetensors
+*.bin
+*.h5
+*.hdf5
+
+# IDE 和编辑器
+.vscode/
+.github/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 日志和临时文件
+*.log
+logs/
+tmp/
+temp/
+
+# get_zero项目 
+get_zero/get_zero/rl/assets/leap/leap_hand/generated/tree/*
+get_zero/get_zero/rl/assets/leap/leap_hand/generated/urdf/*
+get_zero/get_zero/rl/cfg/embodiment/LeapHand/generated/*
+
+# TRO项目
+TRO-Grasp/data/data_urdf/*

@@ -1,6 +1,6 @@
 ---
 name: external-codebase-research
-description: 外部代码库与文档调研技能。用于研究非本地工作区的第三方库、上游仓库和官方文档。适用于了解第三方库 API/行为、查阅上游仓库源码、查找官方文档。不适用于当前工作区代码调研。
+description: 外部代码库与文档调研技能。研究非本地工作区的第三方库、上游仓库和官方文档时使用。适用于了解第三方库 API/行为、查阅上游仓库源码、查找官方文档。
 ---
 
 # 外部代码库调研
@@ -25,14 +25,14 @@ description: 外部代码库与文档调研技能。用于研究非本地工作�
 
 | 工具 | 用途 | 适用场景 |
 |------|------|----------|
-| `mcp_io_github_ups_get-library-docs` (Context7) | 官方文档查询 | 主流库的概念/用法/API |
+| `mcp_io_github_ups_get-library-docs` (Context7) | 官方文档查询 | 主流库的概念/用法/API/实现 |
 | `mcp_cognitionai_d_ask_question` (DeepWiki) | 文档问答 | 需要高信息密度的答案 |
 | `github_repo` | 源码阅读 | 需要查看具体实现、默认值、条件逻辑 |
 | 网络搜索 | 发现入口 | 定位规范仓库/文档、找到问题切入点 |
 
 **说明**：
 - 概念理解优先用文档工具（Context7/DeepWiki）
-- 具体实现细节用源码工具（github_repo）
+- 具体实现细节用源码工具（Context7/github_repo），优先 `Context7` (token友好)
 - 网络搜索仅用于发现，不作为实现真相的依据
 
 ## 执行要点

@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "augmentcode": {
+      "type": "stdio",
+      "command": "auggie",
+      "args": ["--mcp", "-m", "default"]
+    },
+    "filesystem-mcp": {
+      "cwd": ".",
+      "command": "npx",
+      "args": ["@shtse8/filesystem-mcp"]
+    }
+  },
+  "inputs": []
+}

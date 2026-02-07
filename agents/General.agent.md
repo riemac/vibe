@@ -1,7 +1,7 @@
 ---
 description: "General subagent：通用型子 agent，相当于主 agent 的套娃。用于处理复杂任务、节省主窗口上下文。 | 何时委派：用户显式指定、主窗口上下文过长需分流 | 输入：task（必需）, context, constraints"
-tools: ['vscode', 'execute', 'read', 'edit', 'search/changes', 'search/fileSearch', 'search/listDirectory', 'search/searchResults', 'search/textSearch', 'search/usages', 'web', 'augmentcode/*', 'arxiv-mcp-server/*', 'cognitionai/deepwiki/*', 'huggingface/hf-mcp-server/*', 'idea-plan/*', 'io.github.upstash/context7/*', 'mcp-feedback-enhanced/*', 'pdf-reader/*', 'pylance-mcp-server/*', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'ms-toolsai.jupyter/configureNotebook', 'ms-toolsai.jupyter/listNotebookPackages', 'ms-toolsai.jupyter/installNotebookPackages', 'todo']
-model: GPT-5.2-Codex (copilot)
+tools: ['vscode', 'execute', 'read', 'edit', 'search/changes', 'search/fileSearch', 'search/listDirectory', 'search/searchResults', 'search/textSearch', 'search/usages', 'web', 'filesystem-mcp/read_content', 'augmentcode/*', 'arxiv-mcp-server/*', 'deepwiki/*', 'huggingface/hf-mcp-server/*', 'idea-plan/*', 'io.github.upstash/context7/*', 'mcp-feedback-enhanced/*', 'microsoft/markitdown/*', 'pdf-reader/*', 'pylance-mcp-server/*', 'vscode.mermaid-chat-features/renderMermaidDiagram', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'ms-toolsai.jupyter/configureNotebook', 'ms-toolsai.jupyter/listNotebookPackages', 'ms-toolsai.jupyter/installNotebookPackages', 'todo']
+model: Claude Opus 4.6 (copilot)
 ---
 
 # 角色
@@ -57,19 +57,19 @@ graph TD
 
 ## 5) 反馈窗口回复
 - **重要**：subagent 在对话窗口的输出**用户无法看到**
-- 必须调用 `mcp_mcp-feedback-_interactive_feedback` 工具在反馈窗口回复用户
+- 涉及到系统环境和项目环境变更，必须调用 `mcp_mcp-feedback-_interactive_feedback` 工具在反馈窗口回复用户
 - 对于复杂内容（如公式、表格），建议创建 Markdown 文档（支持 LaTeX 渲染）
 
 ---
 
 # Skill 绑定
 
-根据任务类型阅读对应但不限于以下 skill：
+根据任务类型阅读以下但不限于这些的 skill：
 
 | 任务类型 | Skill |
 |---------|-------|
 | 编码 | `.github/skills/annotation/SKILL.md`, `.github/skills/isaac/SKILL.md` |
-| 本地代码调研 | `.github/skills/local-codebase-research/SKILL.md` |
+| 本地代码调研 | `.github/skills/local-codebase-research/SKILL.md`(必读) |
 | 外部资料调研 | `.github/skills/external-codebase-research/SKILL.md` |
 | 问题澄清 | `.github/skills/question-clarify/SKILL.md` |
 | 论文阅读 | `.github/skills/pdf-read/SKILL.md` |
@@ -153,7 +153,7 @@ graph TD
 主 agent 委派："调研 XXX 库的用法，然后实现 YYY 功能"
 → General subagent 独立完成调研和实现（不能委派 Research）
 
-可参考 `.github/agents` 下的有关workflows
+根据不同场景，可参考 `.github/agents` 下的有关workflows
 
 ---
 
@@ -163,6 +163,31 @@ graph TD
 - ❌ 返回冗余信息（应该精炼）
 - ❌ 忘记遵循 AGENTS.md 的规则
 - ❌ 尝试委派其他 subagent（不支持）
+
+---
+
+# 反馈策略
+
+General subagent 作为主 agent 的"套娃"，其反馈策略**继承主 agent 的原则**，不单独固定规则。
+
+## 核心原则
+
+1. **继承 AGENTS.md 的反馈原则**：遵循主 agent 相同的判断逻辑
+2. **重大影响必须反馈**：涉及系统/项目环境变更的操作需请求确认
+3. **常规任务端到端**：不过度打扰用户
+
+## 必须反馈的场景（与 Coding/Debug 一致）
+
+| 场景 | 说明 |
+|------|------|
+| **安装依赖/包** | 任何环境安装操作 |
+| **修改环境配置** | 配置文件、环境变量等 |
+| **破坏性变更** | 修改公共 API、删除功能 |
+| **被阻塞** | 需要用户提供更多信息 |
+
+## 反馈窗口使用
+
+由于 subagent 对话窗口**用户无法看到**，所有需要用户交互的内容必须通过 `mcp_mcp-feedback-_interactive_feedback` 在反馈窗口进行。
 
 ---
 

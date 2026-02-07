@@ -8,49 +8,45 @@
 
 ```mermaid
 graph LR
-    A((**用户input**<br>提示词, 附件)) --> B[**调研**<br>- 本地代码库查看 local-codebase-research skill <br> - 外部资料和论文委派 research subagent]
-    B --> C[**需求明确**<br>查看 idea-clarify skill]
-    C --> D[**规划**<br>查看 idea-plan skill]
-    D --> E[**实施**<br> - 主 agent，查看 annotations skill <br> - 委派Coding subagent]
-    E --> F[**审核**（option）<br>委派 review subagent]
+    A((**用户input**<br>提示词, 附件)) --> B[**调研**<br>local-codebase-research skill <br> 可委派 research subagent]
+    B --> C[**需求明确**<br>idea-clarify skill]
+    C --> D[**规划**<br>idea-plan skill]
+    D --> E[**实施**<br>annotations skill <br> 可委派 coding subagent]
+    E --> F[**审核**（可选）<br>可委派 review subagent]
 ```
 
 ---
 
-## 阶段说明
+## 主阶段说明
 
-| 阶段 | 执行者 | 关键动作 |
-|------|--------|----------|
-| **调研** | 主 agent + research subagent | 本地代码库分析 + 外部文献调研 |
-| **需求明确** | 主 agent | 参照 `idea-clarify skill`，收敛需求边界 |
-| **规划** | 主 agent | 参照 `idea-plan skill`，创建/更新 `.plan` 文件体系 |
-| **实施** | 主 agent 或 Coding subagent（用户指定） | 端到端 coding，少反馈 |
-| **审核** | review subagent | 可选，风险与规范审查 |
-
-### 实施阶段执行者选择
-
-进入实施阶段前，询问用户偏好：
-
-| 选项 | 适用场景 | 说明 |
-|------|---------|------|
-| **主 agent** | 简单任务、需要频繁交互、上下文已充足 | 直接在当前对话窗口编码 |
-| **Coding subagent** | 复杂任务、边界明确、希望节省主窗口上下文 | 委派子 agent 独立完成，返回结构化结果 |
-
-默认行为：**询问用户**，不自动假设。
+| 阶段 | 关键动作 |
+|------|----------|
+| **调研** | 本地代码库分析（local-codebase-research skill）+ 外部文献调研（可委派 research subagent） |
+| **需求明确** | 参照 `idea-clarify skill`，收敛需求边界 |
+| **规划** | 参照 `idea-plan skill`，创建/更新 `.plan` 文件体系 |
+| **实施** | 端到端 coding（可委派 coding subagent），参照 `annotations skill` |
+| **审核**（可选） | 风险与规范审查（可委派 review subagent） |
 
 ---
 
-## 反馈策略
+## 反馈与认知负担管理
 
-每主阶段完成后，调用 `mcp_interactive_feedback` 在反馈窗口说明阶段进度，并请求批准是否进入下一阶段。
-
----
-
-## 认知负担管理
-
-用户参与度**前高后低**：
+**用户参与度**：前高后低
 - **调研** + **需求明确**：充分交互，确保方向正确
-- **规划** + **实施**：主 agent 端到端执行，仅遇影响科研结果的重大决策分支才请求反馈
+- **规划** + **实施**：端到端执行，仅遇影响科研结果或环境的重大决策分支才请求反馈
+
+**主阶段反馈**：以下时机需请求用户确认
+
+| 时机 | 反馈内容 |
+|------|----------|
+| **开始前** | 确认进入 idea 助理流程，了解用户初步想法 |
+| **调研完成** | 汇报调研发现，确认方向 |
+| **需求明确完成** | 确认需求边界，是否进入规划 |
+| **规划完成** | 展示任务规划，确认是否开始实施 |
+| **实施完成** | 汇报结果 |
+| **审核完成**（可选） | 汇报审核发现 |
+
+调用 `mcp_mcp-feedback-_interactive_feedback` 在反馈窗口说明阶段进度，请求批准进入下一阶段。
 
 ---
 
